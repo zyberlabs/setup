@@ -1,9 +1,13 @@
-
+# Start Postgresql
 service postgresql start
 
+# Initialise the Metasploit PostgreSQL Database
 msfdb init
 
+# Launch the console
 msfconsole
+
+# Check the database status
 msf > db_status
 [*] postgresql connected to msf3
 msf >
