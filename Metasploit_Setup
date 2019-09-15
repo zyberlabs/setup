@@ -1,0 +1,9 @@
+
+service postgresql start
+
+msfdb init
+
+msfconsole
+msf > db_status
+[*] postgresql connected to msf3
+msf >
