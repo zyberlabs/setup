@@ -63,7 +63,7 @@ Configure proxy for apt (package manager)
 
 Create /etc/apt/apt.conf and add:
 
-	Acquire::http::Proxy "http://cchcs-proxy.glb.cphcs.ca.gov:3128";
+	Acquire::http::Proxy "http://<user@proxy.url>:3128";
 
 ~~~~~~~~~~~~~~~~~~
 Configure system-wide proxy
@@ -71,9 +71,9 @@ Configure system-wide proxy
 
 Edit /etc/zsh/zprofile and add the following:
 
-	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
-	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
-	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
+	'export http_proxy=http://<user@proxy.url>:3128'
+	'export http_proxy=http://<user@proxy.url>:3128'
+	'export http_proxy=http://<user@proxy.url>:3128'
 
 ~~~~~~~~~~~~~~~~~~
 Update and upgrade (add to crontab)
@@ -179,9 +179,9 @@ Setup tigtervnc users, edit:
 	
 	Current setup:
 	
-	:1=root
-	:2=dennis.klaman
-	:3=justin.balog
+	:1=<user1>
+	:2=<user2>
+	:3=<user3>
 
 Set up tigervncserver as a service:
 
