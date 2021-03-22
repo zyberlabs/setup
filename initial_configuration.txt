@@ -1,0 +1,296 @@
+==================
+Initial Kali Setup
+==================
+
+~~~~~~~~~~~~~~~~~~
+Change hostname
+~~~~~~~~~~~~~~~~~~
+
+Edit /etc/hosts and change hostname
+
+Set new hostname. Edit /etc/hosts and change hostname
+
+	'hostnamectl set-hostname <hostname>'
+	'hostname <hostname>'
+	'service networking force-reload'
+
+~~~~~~~~~~~~~~~~~~
+Add user
+~~~~~~~~~~~~~~~~~~
+
+Create new user:
+
+	'useradd -m <user>'
+	'passwd user1'
+
+Add user to sudo group:
+
+	'usermod -a -G sudo <user>'
+
+Set user shell:
+
+	'chsh -s /usr/bin/zsh <user>'
+
+~~~~~~~~~~~~~~~~~~
+Login messages
+~~~~~~~~~~~~~~~~~~
+
+Clear MOTD:
+
+	'cat /dev/null > /etc/motd'
+
+Quite kali-motd message globally:
+
+	'mkdir /etc/kali-motd'
+	'touch /etc/kali-motd/disable-all'
+or
+	mkdir /etc/kali-motd && touch /etc/kali-motd/disable-all
+
+Quite kali-motd message locally:
+
+	'mkdir ~/.local/share/kali-motd'
+	'touch ~/.local/share/kali-motd/disable-all'
+or
+	'mkdir ~/.local/share/kali-motd && touch ~/.local/share/kali-motd/disable-all'
+
+Set legal notice:
+
+Edit /etc/issue.net and add legal warning text.  
+
+~~~~~~~~~~~~~~~~~~
+Configure proxy for apt (package manager)
+~~~~~~~~~~~~~~~~~~
+
+Create /etc/apt/apt.conf and add:
+
+	Acquire::http::Proxy "http://cchcs-proxy.glb.cphcs.ca.gov:3128";
+
+~~~~~~~~~~~~~~~~~~
+Configure system-wide proxy
+~~~~~~~~~~~~~~~~~~
+
+Edit /etc/zsh/zprofile and add the following:
+
+	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
+	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
+	'export http_proxy=http://cchcs-proxy.glb.cphcs.ca.gov:3128'
+
+~~~~~~~~~~~~~~~~~~
+Update and upgrade (add to crontab)
+~~~~~~~~~~~~~~~~~~
+
+Create a script /usr/bin/update with the following:
+
+	'#!/usr/bin/zsh'
+	'apt-get update'
+	'apt-get -y upgrade'
+	'apt-get -y dist-upgrade'
+	'apt-get autoremove'
+	'apt-get -y autoclean'
+
+Set access permission:
+
+	'chmod 755 /usr/bin/update'
+
+Update the system, run:
+
+	'update'
+
+~~~~~~~~~~~~~~~~~~
+SSH Server
+~~~~~~~~~~~~~~~~~~
+
+To determine the run status:
+
+	'service ssh status'
+
+If it is not running, run:
+
+	'service ssh start'
+
+Enable run levels:
+
+	'update-rc.d -f ssh remove'
+	'update-rc.d -f ssh default'
+	'systemctl disable ssh'
+	'systemctl enable --now ssh'
+
+Change default SSH keys:
+
+	'cd /etc/ssh/'
+	'mkdir default_kali_keys'
+	'mv ssh_host_* default_kali_keys/'
+	'dpkg-reconfigure openssh-server'
+or
+
+	mkdir /etc/ssh/default_kali_keys && mv /etc/ssh/ssh_host_* /etc/ssh/default_kali_keys/ && dpkg-reconfigure openssh-server
+
+Compare keys to be sure:
+
+	'md5sum ssh_host_*'
+	'cd default_kali_keys/'
+	'md5sum ssh_host_*'
+
+Restart SSH:
+
+	'service ssh restart'
+
+Configure SSH server (/etc/ssh/sshd_config):
+
+Only need to uncomment the settings to change defaults
+
+	# Set legal notice
+	Banner=/etc/issue.net
+	
+	# Set idle timeout
+	TCPKeepAlive yes
+	ClientAliveInterval 30m		# logout if idle for 30 minutes
+	#ClientAliveCountMax 3
+
+Restart SSH:
+
+	'service ssh restart'
+
+~~~~~~~~~~~~~~~~~~
+Use SSH key-based authentication
+~~~~~~~~~~~~~~~~~~
+
+Consider creating personal SSH keys to use for authentication instead of username and password.
+
+	'mkdir ~/.ssh'
+	'chmod 700 .ssh'
+	'cd ~/.ssh'
+	'touch authorized_keys'
+	'chmod 600 authorized_keys'
+
+Create a key pair and copy the public key to authorized_keys.
+
+~~~~~~~~~~~~~~~~~~
+VNC Server
+~~~~~~~~~~~~~~~~~~
+
+Install needed VNC server packages:
+
+	'apt-get install -y tigervnc-standalone-server dbus-x11 autocutsel'
+
+Setup tigtervnc users, edit:
+
+	'/etc/tigervnc/vncserver.users'
+	
+	Current setup:
+	
+	:1=root
+	:2=dennis.klaman
+	:3=justin.balog
+
+Set up tigervncserver as a service:
+
+	cd /etc/systemd/system
+	cp /lib/systemd/system/tigervncserver@.service ./tigervncserver@:1.service
+
+	Edit tigervncserver@:1.service:
+	
+	'After=syslog.target network.target'
+
+Duplicate to for multiple instances:
+
+	'cp tigervncserver@:1.service tigervncserver@:2.service'
+	'cp tigervncserver@:1.service tigervncserver@:3.service'
+	
+Reload systemd:
+
+	'systemctl daemon-reload'
+
+Enable tigervncserver as a service and start instances:
+
+	'systemctl enable -now tigervncserver@:1.service'
+	'systemctl enable -now tigervncserver@:2.service'
+	'systemctl enable -now tigervncserver@:3.service'
+
+Set vncserver password for userID:
+
+	'vncpasswd'
+
+Start a new instance from your account (note the display reference):
+
+	'vncserver'
+
+Useful commands:
+
+	'systemctl start tigervncserver@:1.service'
+	'systemctl status tigervncserver@:1.service'
+	'systemctl stop tigervncserver@:1.service'
+
+~~~~~~~~~~~~~~~~~~
+Metasploit
+~~~~~~~~~~~~~~~~~~
+
+Start PostgreSQL database server, set run levels, validate it is running:
+
+	'systemctl enable --now postgresql'
+	'systemctl is-enabled postgresql'
+	'ss -ant | grep 5432'
+
+Initialize the Metasploit PostgreSQL Database:
+
+	'msfdb init'
+
+Launch msfconsole:
+
+	'msfconsole'
+
+Verify database connectivity:
+
+	'db_status'
+
+Update Metasploit Framework:
+
+	'apt install metasploit-framework'
+
+~~~~~~~~~~~~~~~~~~
+UFW
+~~~~~~~~~~~~~~~~~~
+
+Install UFW:
+
+	'apt-get install ufw'
+
+Enable UFW:
+
+	'system enable ufw'
+
+Set rule to allow SSH:
+
+	'ufw allow ssh'
+
+Enable the firewall:
+
+	'system enable --now ufw'
+
+~~~~~~~~~~~~~~~~~~
+Disable ipv6
+~~~~~~~~~~~~~~~~~~
+
+Edit /etc/default/grub and modify GRUB_CMDLINE_LINUX_DEFAULT and GRUB_CMDLINE_LINUX to disable IPv6 at startup:
+
+	GRUB_CMDLINE_LINUX_DEFAULT=”quiet ipv6.disable=1″
+	GRUB_CMDLINE_LINUX=”ipv6.disable=1"
+
+To make the settings take effect:
+
+	update-grub
+
+Edit /etc/sysctl.conf and add the following:
+
+	# Disable ipv6net.ipv6.conf.all.disable_ipv6=1
+	net.ipv6.conf.all.disable_ipv6=1
+	net.ipv6.conf.default.disable_ipv6=1
+	net.ipv6.conf.lo.disable_ipv6=1
+
+To make the settings take effect:
+
+	'sysctl -p'
+
+
+
+
